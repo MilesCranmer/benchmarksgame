@@ -3,13 +3,13 @@
 
 try:
    import gtop
-except ImportError, err:
+except ImportError as err:
    planDesc = 'gtop import failed - measure cpu & elapsed time'
    from planC import measure
 else:
    try:
       import affinity
-   except ImportError, err:
+   except ImportError as err:
       from planB import measure
       #planDesc = 'affinity import failed - use all cores'
       planDesc = 'measure cpu & elapsed time & memory & cpu load'
@@ -48,7 +48,8 @@ def linkToSource(directory,filename,dstDir=None,srcFilename=None):
 
    try:
       os.symlink(src,dst)
-   except OSError, (e,_):
+   except OSError as xxx_todo_changeme:
+      (e,_) = xxx_todo_changeme.args
       if e == EEXIST:
          os.unlink(dst)
          os.symlink(src,dst)

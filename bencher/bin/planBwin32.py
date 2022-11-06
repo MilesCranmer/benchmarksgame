@@ -16,9 +16,9 @@ try:
    from win32job import CreateJobObject, AssignProcessToJobObject, \
       QueryInformationJobObject, JobObjectBasicAccountingInformation, \
       TerminateJobObject, JobObjectExtendedLimitInformation
-except ImportError, err:
-   print 'please install Python Win32 Extensions'
-   print 'see http://sourceforge.net/projects/pywin32/'
+except ImportError as err:
+   print('please install Python Win32 Extensions')
+   print('see http://sourceforge.net/projects/pywin32/')
    sys.exit(0)
 
 from subprocess import Popen
@@ -132,7 +132,8 @@ def measure(arg,commandline,delay,maxtime,
 
 
 
-      except (OSError,ValueError), (e,err):
+      except (OSError,ValueError) as xxx_todo_changeme:
+         (e,err) = xxx_todo_changeme.args
          if logger: logger.error('%s %s',e,err)
          m.setError()
 

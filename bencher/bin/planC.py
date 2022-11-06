@@ -9,7 +9,7 @@ __author__ =  'Isaac Gouy'
 
 from domain import Record
 
-import os, sys, cPickle, time, threading, signal
+import os, sys, pickle, time, threading, signal
 from errno import ENOENT
 from subprocess import Popen
 
@@ -21,7 +21,7 @@ def measure(arg,commandline,delay,maxtime,
    forkedPid = os.fork()
 
    if forkedPid: # read pickled measurements from the pipe
-      os.close(w); rPipe = os.fdopen(r); r = cPickle.Unpickler(rPipe)
+      os.close(w); rPipe = os.fdopen(r); r = pickle.Unpickler(rPipe)
       measurements = r.load()
       rPipe.close()
       os.waitpid(forkedPid,0)
@@ -49,7 +49,8 @@ def measure(arg,commandline,delay,maxtime,
                else:
                   self.timedout = True
                   os.kill(self.p, signal.SIGKILL) 
-            except OSError, (e,err):
+            except OSError as xxx_todo_changeme:
+               (e,err) = xxx_todo_changeme.args
                if logger: logger.error('%s %s',e,err)
 
        
@@ -58,7 +59,7 @@ def measure(arg,commandline,delay,maxtime,
          m = Record(arg)
 
          # only write pickles to the pipe
-         os.close(r); wPipe = os.fdopen(w, 'w'); w = cPickle.Pickler(wPipe)
+         os.close(r); wPipe = os.fdopen(w, 'w'); w = pickle.Pickler(wPipe)
 
          start = time.time()
 
@@ -91,10 +92,12 @@ def measure(arg,commandline,delay,maxtime,
       except KeyboardInterrupt:
          os.kill(p.pid, signal.SIGKILL)
 
-      except ZeroDivisionError, (e,err): 
+      except ZeroDivisionError as xxx_todo_changeme1: 
+         (e,err) = xxx_todo_changeme1.args 
          if logger: logger.warn('%s %s',err,'too fast to measure?')
 
-      except (OSError,ValueError), (e,err):
+      except (OSError,ValueError) as xxx_todo_changeme2:
+         (e,err) = xxx_todo_changeme2.args
          if e == ENOENT: # No such file or directory
             if logger: logger.warn('%s %s',err,commandline)
             m.setMissing() 

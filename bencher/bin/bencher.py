@@ -11,7 +11,7 @@ copyright Isaac Gouy 2010-2018
 
 
 
-from __future__ import with_statement
+
 
 __author__ =  'Isaac Gouy'
 
@@ -26,10 +26,10 @@ __author__ =  'Isaac Gouy'
 import bz2, copy, fnmatch, logging, os, re, sys
 
 # need to use ConfigParser not SafeConfigParser
-from ConfigParser import ConfigParser, NoSectionError, NoOptionError
+from configparser import ConfigParser, NoSectionError, NoOptionError
 
-from contextlib import nested
-from cStringIO import StringIO
+# from contextlib import nested
+from io import StringIO
 from domain import FileNameParts, LinkNameParts, Record
 from errno import ENOENT, EEXIST
 from filecmp import cmp
@@ -249,9 +249,9 @@ def configure(ini):
             elif o in ('affinitymask'):
                affinitymask = parser.getint(s,o) 
 
-   except (NoSectionError,NoOptionError), e:
+   except (NoSectionError,NoOptionError) as e:
       if logger: logger.debug(e)
-      print e, 'in', realpath(ini)
+      print(e, 'in', realpath(ini))
       sys.exit(2)
 
 
@@ -313,7 +313,8 @@ def checkExes():
          with open( nullName, 'w') as df:
             call(cmd,stdout=df,stderr=STDOUT)
             exes.add(cmd[0])
-      except OSError, (e,err):
+      except OSError as xxx_todo_changeme3:
+         (e,err) = xxx_todo_changeme3.args
          if e == ENOENT: # No such file or directory
             if logger: logger.debug('%s program not found', cmd[0])
 
@@ -382,7 +383,7 @@ def targets(originalFiles,aliasedFiles):
 
    # reverse alias dictionary so we can look up the target for each alias
    revAlias = {}
-   for k,vs in alias.iteritems():
+   for k,vs in alias.items():
       for v in vs:
          revAlias[v] = k
 
@@ -420,7 +421,8 @@ def targets(originalFiles,aliasedFiles):
    def notUpToDate(s,d):
       try:
          return getmtime( join(srcdir,s) ) > getmtime( join(datdir,d) )
-      except OSError, (e,_): 
+      except OSError as xxx_todo_changeme4: 
+         (e,_) = xxx_todo_changeme4.args 
          return e == ENOENT # No such file or directory
 
    links = [f for f in links if notUpToDate(f.filename,f.datName)]
@@ -508,9 +510,9 @@ def callMake(p):
          startmake = time()
          call(cmd.split(),stdout=mf,stderr=STDOUT)
          endmake = time()
-         print >>mf, '\n%0.2fs to complete and log all make actions' % (endmake - startmake)
+         print('\n%0.2fs to complete and log all make actions' % (endmake - startmake), file=mf)
       else:
-         print >>mf, '%s program not found' % (makeExeName)
+         print('%s program not found' % (makeExeName), file=mf)
          if logger: logger.debug('%s %s - %s program not found', \
             makeExeName, p.runName, makeExeName)
 
@@ -600,10 +602,10 @@ def setVariables(name):
    # export test specific environment variables for tools
    os.environ['TEST'] = testname
    
-   for k,v in testenv.get('default',{}).iteritems():
+   for k,v in testenv.get('default',{}).items():
       os.environ[k] = v
 
-   for k,v in testenv.get(testname,{}).iteritems():
+   for k,v in testenv.get(testname,{}).items():
       os.environ[k] = v
 
    testvalues = testrange.get(testname,['0'])
@@ -617,7 +619,7 @@ def setVariables(name):
 
 def setProgramVariables(p):
    if p.programName in testenv:
-      for k,v in testenv.get(p.programName,{}).iteritems():
+      for k,v in testenv.get(p.programName,{}).items():
          os.environ[k] = v
 
 
@@ -630,9 +632,10 @@ def cleanTmpdirFor(p,allowed):
    if isdir(tmpdir):
       try:
          rmtree(tmpdir)
-      except OSError, (e,err):
+      except OSError as xxx_todo_changeme5:
+         (e,err) = xxx_todo_changeme5.args
          if logger: logger.error('%s %s',err,tmpdir)
-         print "Please exit all other programs using " + tmpdir
+         print("Please exit all other programs using " + tmpdir)
          sys.exit(0)
 
    # make sure all build files and crash files are created in tmpdir
@@ -671,7 +674,8 @@ def callHighlightSourceCodeMarkup(p):
 
    try:
       call(cmd)
-   except OSError, (e,err): 
+   except OSError as xxx_todo_changeme6: 
+      (e,err) = xxx_todo_changeme6.args 
       if logger: logger.debug('%s %s',e,err)
 
 
@@ -696,7 +700,7 @@ def sizeCompressedSourceCode(p):
          s = re.sub('&lt;', '<', s)
          s = re.sub('&gt;', '>', s)
          s = re.sub('&#64;', '@', s)
-   except (OSError,IOError), err:
+   except (OSError,IOError) as err:
       if logger: logger.error(err)
 
    sz = 0
@@ -705,7 +709,7 @@ def sizeCompressedSourceCode(p):
       try:
          gz = GzipFile(path,'wb',1)
          gz.write(s)
-      except (OSError,IOError), err:
+      except (OSError,IOError) as err:
          if logger: logger.error(err)
       finally:
          gz.close()
@@ -722,7 +726,7 @@ def isNotChecked(testname):
 
 
 def isCheckNDiff(testname):
-   return ndiff_outputcheck.has_key(testname)
+   return testname in ndiff_outputcheck
 
 
 
@@ -735,7 +739,7 @@ def checkAndLog(m,outFile,logf):
 
    def cmpCheck(f1,f2,df):
       if not cmp(f1,f2):
-         print >>df, '\n %s %s differ\n' % (f1,f2)
+         print('\n %s %s differ\n' % (f1,f2), file=df)
 
 
    if m.isOkay():
@@ -774,11 +778,12 @@ def checkAndLog(m,outFile,logf):
                   else:
                      cmpCheck(_OUT,argFile,df)
 
-            except OSError, (e,err):
+            except OSError as xxx_todo_changeme1:
+               (e,err) = xxx_todo_changeme1.args
                if e == ENOENT: # No such file or directory
                   m.setBadOutput()
-                  print >>logf, '\nFAIL:', err, '\n'
-                  print 'FAIL ', err,
+                  print('\nFAIL:', err, '\n', file=logf)
+                  print('FAIL ', err, end=' ')
 
             if df.tell():
                m.setBadOutput()
@@ -788,7 +793,7 @@ def checkAndLog(m,outFile,logf):
                   
    if not m.isOkay():
       extra = '' if not m.hasTimedout() else '%s %d%s' % ('after',maxtime,'s')
-      print >>logf, '\n%s%s\n' % (m.statusStr(),extra)
+      print('\n%s%s\n' % (m.statusStr(),extra), file=logf)
 
 
 
@@ -856,7 +861,7 @@ def measureCheckAndLog(p,t,ms):
          with open(logName(p),'w') as logf:
             with open(ofName,'w') as of:
                # append timestamp to log
-               print >>logf, '\n', strftime("%a, %d %b %Y %H:%M:%S GMT", gmtime())
+               print('\n', strftime("%a, %d %b %Y %H:%M:%S GMT", gmtime()), file=logf)
 
                # append Make output to log
                if hasMake(p.imp):
@@ -867,14 +872,14 @@ def measureCheckAndLog(p,t,ms):
                   # append command line showing redirected test data file to log
                   if testdata.get(testname,None):
                      dfName = dataName(testdata[testname],a)
-                     print >>logf, '\nCOMMAND LINE:\n', cmd, '<', split(dfName)[1]
+                     print('\nCOMMAND LINE:\n', cmd, '<', split(dfName)[1], file=logf)
                      with open(dfName,'r') as df:
                         m = measure(a,qsplit(cmd),delay,maxtime,of,ef,df,
                            logger=logger,affinitymask=affinitymask)
 
                   # append command line showing test value argument to log
                   else:
-                     print >>logf, '\nCOMMAND LINE:\n', cmd
+                     print('\nCOMMAND LINE:\n', cmd, file=logf)
                      m = measure(a,qsplit(cmd),delay,maxtime,of,ef,
                         logger=logger,affinitymask=affinitymask)
 
@@ -919,7 +924,7 @@ def measureCheckAndLog(p,t,ms):
             break
 
 
-      except IOError, err:
+      except IOError as err:
          if logger: logger.error(err)
 
       finally:
@@ -976,8 +981,8 @@ def measurePrograms(name,programs,allowed,total):
          datf = bz2.BZ2File( join(datdir,p.datName) ,'w')
          for m in ms: 
             m.gz = srcSize
-            print >>datf, m
-      except IOError, err:
+            print(m, file=datf)
+      except IOError as err:
          if logger: logger.error(err)
       finally:
          datf.close()
@@ -1013,7 +1018,7 @@ def measureCheckAndLogRepeatLargest(p,t,ms):
          with open(logName(p),'w') as logf:
             with open(ofName,'w') as of:
                # append timestamp to log
-               print >>logf, '\n', strftime("%a, %d %b %Y %H:%M:%S GMT", gmtime())
+               print('\n', strftime("%a, %d %b %Y %H:%M:%S GMT", gmtime()), file=logf)
 
                # append Make output to log
                if hasMake(p.imp):
@@ -1024,14 +1029,14 @@ def measureCheckAndLogRepeatLargest(p,t,ms):
                   # append command line showing redirected test data file to log
                   if testdata.get(testname,None):
                      dfName = dataName(testdata[testname],a)
-                     print >>logf, '\nCOMMAND LINE:\n', cmd, '<', split(dfName)[1]
+                     print('\nCOMMAND LINE:\n', cmd, '<', split(dfName)[1], file=logf)
                      with open(dfName,'r') as df:
                         m = measure(a,qsplit(cmd),delay,maxtime,of,ef,df,
                            logger=logger,affinitymask=affinitymask)
 
                   # append command line showing test value argument to log
                   else:
-                     print >>logf, '\nCOMMAND LINE:\n', cmd
+                     print('\nCOMMAND LINE:\n', cmd, file=logf)
                      m = measure(a,qsplit(cmd),delay,maxtime,of,ef,
                         logger=logger,affinitymask=affinitymask)
 
@@ -1078,7 +1083,7 @@ def measureCheckAndLogRepeatLargest(p,t,ms):
             break
 
 
-      except IOError, err:
+      except IOError as err:
          if logger: logger.error(err)
 
       finally:
@@ -1135,8 +1140,8 @@ def measureProgramsRepeatLargest(name,programs,allowed,total):
          datf = bz2.BZ2File( join(datdir,p.datName) ,'w')
          for m in ms:
             m.gz = srcSize
-            print >>datf, m
-      except IOError, err:
+            print(m, file=datf)
+      except IOError as err:
          if logger: logger.error(err)
       finally:
          datf.close()
@@ -1193,11 +1198,11 @@ def appendToBothDataCsv(ms,fp,df,ndf):
 
 
    # set maxMem to the highest recorded memory for that test value
-   for k,v in d.iteritems():
+   for k,v in d.items():
       v.maxMem = mem[k]
 
    # sort and append measurements to ndatacsv
-   ms = d.values()
+   ms = list(d.values())
    ms.sort()
    for each in ms:
       appendNames(fp,ndf)
@@ -1210,7 +1215,7 @@ def appendToBothDataCsv(ms,fp,df,ndf):
    try:
       appendNames(fp,df)
       df.write(str(ms[-1:][0])); df.write('\n')
-   except IndexError, err:
+   except IndexError as err:
       if logger: logger.error(err)
 
 
@@ -1232,7 +1237,7 @@ def appendToCsv(d,path,filename,df,ndf,bdf):
       appendToBulkdataCsv(ms,fp,bdf)
       appendToBothDataCsv(ms,fp,df,ndf)
 
-   except IOError, err:
+   except IOError as err:
       if logger: logger.error(err)
    finally:
       f.close()
@@ -1247,7 +1252,7 @@ def walkDatFiles(df,ndf,bdf):
       try:
          path = join(d,datdirName)
          datfiles = os.listdir(path)
-      except OSError, err: 
+      except OSError as err: 
          if err[0] == ENOENT: 
             if logger: logger.debug(err)
             continue # No such file or directory
@@ -1269,20 +1274,19 @@ def makeSummaryFiles(iniName):
    ndatacsv = 'fastest_measurements.csv'
    bulkdatacsv = 'all_measurements.csv'
 
-   with nested( open( join(datacsv), 'w'),
-                open( join(ndatacsv), 'w')) as (df,ndf):
+   with open( join(datacsv), 'w') as df:
+      with open( join(ndatacsv), 'w') as ndf:
+         try:
+            #bdf = bz2.BZ2File( join(bulkdatacsv), 'w')
+            bdf = open( join(bulkdatacsv), 'w')
 
-      try:
-         #bdf = bz2.BZ2File( join(bulkdatacsv), 'w')
-         bdf = open( join(bulkdatacsv), 'w')
+            writeHeader(df); writeHeader(ndf); writeHeader(bdf)
+            walkDatFiles(df,ndf,bdf)
 
-         writeHeader(df); writeHeader(ndf); writeHeader(bdf)
-         walkDatFiles(df,ndf,bdf)
-
-      except (OSError,IOError), err:
-         if logger: logger.error(err)
-      finally:
-         bdf.close()
+         except (OSError,IOError) as err:
+            if logger: logger.error(err)
+         finally:
+            bdf.close()
 
    try:
       if dirs['dat_sweep']:
@@ -1291,7 +1295,7 @@ def makeSummaryFiles(iniName):
          copy2( join(bulkdatacsv), dirs['dat_sweep'])
          if logger: logger.info('copy %s files to %s','*.csv',dirs['dat_sweep'])
 
-   except (OSError,IOError), err:
+   except (OSError,IOError) as err:
       if logger: logger.error(err)
 
 
@@ -1310,7 +1314,7 @@ def sweepLogAndCodeFiles():
             try:
                path = join(d,dirName)
                fs = fnmatch.filter( os.listdir(path), pattern)
-            except OSError, err: 
+            except OSError as err: 
                if err[0] == ENOENT: 
                   if logger: logger.debug(err)
                   continue # No such file or directory
@@ -1338,7 +1342,7 @@ def benchmarksGame(ini):
    total = sum([len(s) for k,s,a in w])
 
    if total == 0:
-      print 'nothing to be done - measurements are up-to-date'
+      print('nothing to be done - measurements are up-to-date')
       if logger: logger.info('nothing to be done - measurements are up-to-date')
 
    else:
@@ -1375,7 +1379,8 @@ def force(items):
          for f in fs:
             try:
                os.remove( join(d,f) )
-            except OSError, (e,err):
+            except OSError as xxx_todo_changeme2:
+               (e,err) = xxx_todo_changeme2.args
                if logger: logger.error('%s %s %s %s',e,err,d,f)
 
    for each in onlydirs:
@@ -1389,13 +1394,14 @@ def force(items):
                try:
                   os.remove( join(d,f) )
                   if logger: logger.info('remove %s %s',d,f)
-               except OSError, (e,err):
+               except OSError as xxx_todo_changeme:
+                  (e,err) = xxx_todo_changeme.args
                   if logger: logger.error('%s %s %s %s',e,err,d,f)
 
 
 
 def main():
-   print 'bencher release 0.9'
+   print('bencher release 0.9')
 
    try:
       # check for default directory locations
@@ -1417,7 +1423,7 @@ def main():
          if dirs['tmp'] and isdir(dirs['tmp']):
             if not logger: configureLogger(logfilemax,dirs['tmp'])
          else:
-            print 'No bencher/tmp'
+            print('No bencher/tmp')
             sys.exit(0)
 
          checkExes()
@@ -1425,20 +1431,20 @@ def main():
          if remeasure:
             force(remeasure)
 
-         print planDesc
+         print(planDesc)
          benchmarksGame(ini)
 
       else:   
-         print 'No .ini file'
+         print('No .ini file')
          sys.exit(0)    
 
    except KeyboardInterrupt:
       if logger: logger.debug('Keyboard Interrupt')
       sys.exit(1)
 
-   except GetoptError, err:
+   except GetoptError as err:
       if logger: logger.debug(err)
-      print err
+      print(err)
       sys.exit(2)
 
            

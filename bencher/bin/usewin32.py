@@ -36,7 +36,8 @@ def linkToSource(directory,filename,dstDir=None,srcFilename=None):
 
    try:
       copyfile(src,dst) ### COPY INSTEAD OF SYMLINK
-   except OSError, (e,_):
+   except OSError as xxx_todo_changeme:
+      (e,_) = xxx_todo_changeme.args
       if e == EEXIST: pass # OK the file already exists - or should it be removed?
 
 
